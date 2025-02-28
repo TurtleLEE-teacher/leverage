@@ -350,5 +350,3 @@
             });
         }
     </script>
-</body>
-</html>
