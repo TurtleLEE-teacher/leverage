@@ -1,5 +1,4 @@
-    <script>
-        // 페이지 로드 시 실행
+            // 페이지 로드 시 실행
         document.addEventListener('DOMContentLoaded', function() {
             // 기본값 설정 - 현재 월을 기준으로 이전 3개월 설정
             const now = new Date();
@@ -349,4 +348,3 @@
                 }
             });
         }
-    </script>
