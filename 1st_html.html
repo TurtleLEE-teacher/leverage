@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이선생의 컨타도 1호: 수익성 모니터링</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <style>
+        /* CSS 부분은 아래 CSS 코드 블록에 제공합니다 */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span style="font-size: 2.5rem; margin-right: 10px;">📊</span>
+            <h1>이선생의 컨타도 1호: 수익성 모니터링</h1>
+            <p class="subtitle">3개월 매출 및 비용 데이터를 기반으로 향후 6개월 수익성을 예측합니다 ✨</p>
+        </header>
+        
+        <div class="input-section">
+            <h2>📝 데이터 입력</h2>
+            
+            <div class="manual-entry">
+                <!-- 과거부터 최근까지 입력하도록 변경 (3개월, 2개월, 1개월 순) -->
+                <div class="month-input">
+                    <h3>🔍 3개월 전</h3>
+                    <label for="month3-select">월 선택:</label>
+                    <select id="month3-select">
+                        <option value="1월">1월</option>
+                        <option value="2월">2월</option>
+                        <option value="3월">3월</option>
+                        <option value="4월">4월</option>
+                        <option value="5월">5월</option>
+                        <option value="6월">6월</option>
+                        <option value="7월">7월</option>
+                        <option value="8월">8월</option>
+                        <option value="9월">9월</option>
+                        <option value="10월">10월</option>
+                        <option value="11월" selected>11월</option>
+                        <option value="12월">12월</option>
+                    </select>
+                    <label for="month3-revenue">매출:</label>
+                    <span class="unit-label">단위: 만원 💰</span>
+                    <input type="number" id="month3-revenue" placeholder="예: 900">
+                    <label for="month3-cost">비용:</label>
+                    <span class="unit-label">단위: 만원 💸</span>
+                    <input type="number" id="month3-cost" placeholder="예: 600">
+                </div>
+                
+                <div class="month-input">
+                    <h3>🔍 2개월 전</h3>
+                    <label for="month2-select">월 선택:</label>
+                    <select id="month2-select">
+                        <option value="1월">1월</option>
+                        <option value="2월">2월</option>
+                        <option value="3월">3월</option>
+                        <option value="4월">4월</option>
+                        <option value="5월">5월</option>
+                        <option value="6월">6월</option>
+                        <option value="7월">7월</option>
+                        <option value="8월">8월</option>
+                        <option value="9월">9월</option>
+                        <option value="10월">10월</option>
+                        <option value="11월">11월</option>
+                        <option value="12월" selected>12월</option>
+                    </select>
+                    <label for="month2-revenue">매출:</label>
+                    <span class="unit-label">단위: 만원 💰</span>
+                    <input type="number" id="month2-revenue" placeholder="예: 950">
+                    <label for="month2-cost">비용:</label>
+                    <span class="unit-label">단위: 만원 💸</span>
+                    <input type="number" id="month2-cost" placeholder="예: 650">
+                </div>
+                
+                <div class="month-input">
+                    <h3>🔍 1개월 전</h3>
+                    <label for="month1-select">월 선택:</label>
+                    <select id="month1-select">
+                        <option value="1월" selected>1월</option>
+                        <option value="2월">2월</option>
+                        <option value="3월">3월</option>
+                        <option value="4월">4월</option>
+                        <option value="5월">5월</option>
+                        <option value="6월">6월</option>
+                        <option value="7월">7월</option>
+                        <option value="8월">8월</option>
+                        <option value="9월">9월</option>
+                        <option value="10월">10월</option>
+                        <option value="11월">11월</option>
+                        <option value="12월">12월</option>
+                    </select>
+                    <label for="month1-revenue">매출:</label>
+                    <span class="unit-label">단위: 만원 💰</span>
+                    <input type="number" id="month1-revenue" placeholder="예: 1000">
+                    <label for="month1-cost">비용:</label>
+                    <span class="unit-label">단위: 만원 💸</span>
+                    <input type="number" id="month1-cost" placeholder="예: 700">
+                </div>
+            </div>
+            
+            <button id="calculate-btn" style="display: block; margin: 20px auto;">✨ 수익성 예측 시작</button>
+        </div>
+        
+        <div id="results" class="output-section" style="display: none;">
+            <h2>🎯 예측 결과</h2>
+            
+            <div class="metric-cards">
+                <div class="metric-card">
+                    <h3>⚖️ 평균 수익률</h3>
+                    <div id="avg-profit-margin" class="metric-value">-</div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3>💰 예상 6개월 총 매출</h3>
+                    <div id="total-revenue" class="metric-value">-</div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3>💵 예상 6개월 총 이익</h3>
+                    <div id="total-profit" class="metric-value">-</div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3>🎯 신뢰도 점수</h3>
+                    <div id="confidence-score" class="metric-value">-</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="forecast-chart"></canvas>
+            </div>
+            
+            <!-- 새로 추가된 요약 섹션 -->
+            <div id="summary-section" class="summary-section">
+                <h3 class="summary-title">💡 요약</h3>
+                
+                <div class="summary-content">
+                    <div class="summary-subtitle">
+                        <span class="summary-icon">📊</span> AsIs 현황
+                    </div>
+                    <div id="asis-analysis" class="summary-text">
+                        <!-- 자바스크립트로 채워짐 -->
+                    </div>
+                
+                    <div class="summary-subtitle">
+                        <span class="summary-icon">🔍</span> 개선기회
+                    </div>
+                    <div id="improvement-opportunities" class="summary-text">
+                        <!-- 자바스크립트로 채워짐 -->
+                    </div>
+                
+                    <div class="summary-subtitle">
+                        <span class="summary-icon">🚀</span> ToBe 방향성
+                    </div>
+                    <div id="tobe-direction" class="summary-text">
+                        <!-- 자바스크립트로 채워짐 -->
+                    </div>
+                </div>
+            </div>
+            
+            <h3>📋 월별 예측 상세 데이터</h3>
+            <div style="overflow-x: auto;">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>월</th>
+                            <th>예상 매출 (만원)</th>
+                            <th>예상 비용 (만원)</th>
+                            <th>예상 이익 (만원)</th>
+                            <th>수익률 (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body">
+                        <!-- 결과가 여기에 채워집니다 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2025 이선생의 컨타도 1호: 수익성 모니터링 | 모든 권리 보유 🚀</p>
+        </footer>
+    </div>
+
+    <script>
+        // JavaScript 코드는 여기에 위치합니다
+    </script>
+</body>
+</html>
