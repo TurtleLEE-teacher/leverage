@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -18,31 +19,60 @@
         <div class="input-section">
             <h2>📝 데이터 입력</h2>
             
-            <!-- 입력 개월 설정 부분 -->
-            <div class="month-count-selector">
-                <label for="month-count">입력할 개월 수:</label>
-                <select id="month-count" class="month-count-select">
-                    <option value="3" selected>3개월</option>
-                    <option value="4">4개월</option>
-                    <option value="5">5개월</option>
-                    <option value="6">6개월</option>
-                    <option value="7">7개월</option>
-                    <option value="8">8개월</option>
-                    <option value="9">9개월</option>
-                    <option value="10">10개월</option>
-                    <option value="11">11개월</option>
-                    <option value="12">12개월</option>
-                </select>
-                <button id="apply-month-count" class="apply-btn">적용하기</button>
+            <div class="instructions">
+                <p><strong>👉 사용 방법:</strong></p>
+                <ol>
+                    <li>엑셀에서 <span class="warning-text">월, 매출, 비용</span> 데이터를 복사합니다. (헤더 제외)</li>
+                    <li>아래 붙여넣기 영역에 붙여넣거나, 아래 표에 직접 입력합니다.</li>
+                    <li>데이터는 <span class="warning-text">최근 월부터 과거 월 순서</span>로 입력해주세요.</li>
+                </ol>
             </div>
             
-            <!-- 동적으로 생성될 입력 필드 컨테이너 -->
-            <div id="dynamic-inputs" class="manual-entry">
-                <!-- 기본 3개월 입력 필드 (JavaScript로 동적 생성됨) -->
+            <div class="input-controls">
+                <div class="form-group">
+                    <label for="row-count">입력할 행 수:</label>
+                    <select id="row-count" class="row-count-select">
+                        <option value="3" selected>3개월</option>
+                        <option value="4">4개월</option>
+                        <option value="5">5개월</option>
+                        <option value="6">6개월</option>
+                        <option value="7">7개월</option>
+                        <option value="8">8개월</option>
+                        <option value="9">9개월</option>
+                        <option value="10">10개월</option>
+                        <option value="11">11개월</option>
+                        <option value="12">12개월</option>
+                    </select>
+                </div>
+                <button id="apply-row-count" class="apply-btn">표 크기 변경</button>
+                <button id="clear-table" class="apply-btn" style="background-color: #e74c3c;">입력값 초기화</button>
+                <button id="paste-example" class="excel-btn">샘플 데이터 입력</button>
+            </div>
+            
+            <p><strong>📋 엑셀 데이터 붙여넣기:</strong></p>
+            <div class="excel-paste-area" id="excel-paste-area" contenteditable="true" spellcheck="false">
+                여기에 엑셀 데이터를 붙여넣으세요...
+            </div>
+            <button id="process-paste" class="apply-btn">붙여넣은 데이터 적용하기</button>
+            
+            <p style="margin-top: 20px;"><strong>📊 수동 데이터 입력:</strong></p>
+            <div class="table-responsive">
+                <table class="input-table" id="input-table">
+                    <thead>
+                        <tr>
+                            <th>월</th>
+                            <th>매출 (만원)</th>
+                            <th>비용 (만원)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="input-table-body">
+                        <!-- JavaScript로 동적 생성 -->
+                    </tbody>
+                </table>
             </div>
             
             <div class="button-container">
-                <button id="calculate-btn" style="display: block; margin: 20px auto;">✨ 수익성 예측 시작</button>
+                <button id="calculate-btn">✨ 수익성 예측 시작</button>
             </div>
         </div>
         
@@ -104,7 +134,7 @@
             </div>
             
             <h3>📋 월별 예측 상세 데이터</h3>
-            <div style="overflow-x: auto;">
+            <div class="table-responsive">
                 <table class="results-table">
                     <thead>
                         <tr>
@@ -126,6 +156,7 @@
             <p>© 2025 이선생의 컨타도 1호: 수익성 모니터링 | 모든 권리 보유 🚀</p>
         </footer>
     </div>
-    <script src="3rd_java.js"></script>  <!-- JavaScript 연결 --> 
+
+    <script src="3rd_java.js"></script>
 </body>
 </html>
