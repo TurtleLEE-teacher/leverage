@@ -40,6 +40,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// 샘플
+//console.log("hi")
+
 // 샘플 데이터 생성 함수 (내림차순으로 수정)
 function generateSampleData(count) {
     const data = [];
