@@ -1,75 +1,223 @@
+
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', function() {
-    // 현재 날짜 정보 가져오기
-    const now = new Date();
-    const currentMonth = now.getMonth(); // 0-11
+    // 기본 행 수 (기본값: 3개월)
+    let rowCount = 3;
     
-    // 초기 개월 수 (기본값: 3개월)
-    let monthCount = 3;
+    // 입력 테이블 생성 함수 호출
+    generateInputTable(rowCount);
     
-    // 월 입력 필드 생성 함수 호출
-    generateMonthInputs(monthCount);
-    
-    // 개월 수 변경 버튼 이벤트 설정
-    document.getElementById('apply-month-count').addEventListener('click', function() {
-        const newMonthCount = parseInt(document.getElementById('month-count').value);
-        monthCount = newMonthCount;
-        generateMonthInputs(newMonthCount);
+    // 행 수 변경 버튼 이벤트 설정
+    document.getElementById('apply-row-count').addEventListener('click', function() {
+        const newRowCount = parseInt(document.getElementById('row-count').value);
+        rowCount = newRowCount;
+        generateInputTable(newRowCount);
     });
     
     // 계산 버튼 클릭 이벤트 설정
     document.getElementById('calculate-btn').addEventListener('click', calculateForecast);
+    
+    // 엑셀 붙여넣기 처리 버튼 이벤트
+    document.getElementById('process-paste').addEventListener('click', processPasteData);
+    
+    // 입력값 초기화 버튼 이벤트
+    document.getElementById('clear-table').addEventListener('click', function() {
+        generateInputTable(rowCount, true); // true = 값 초기화
+    });
+    
+    // 샘플 데이터 입력 버튼 이벤트
+    document.getElementById('paste-example').addEventListener('click', function() {
+        const sampleData = generateSampleData(rowCount);
+        fillTableWithData(sampleData);
+    });
+    
+    // 붙여넣기 영역 클릭 시 텍스트 선택
+    document.getElementById('excel-paste-area').addEventListener('click', function() {
+        if (this.innerText === '여기에 엑셀 데이터를 붙여넣으세요...') {
+            this.innerText = '';
+        }
+        this.focus();
+    });
 });
 
-// 동적으로 월 입력 필드 생성 함수
-function generateMonthInputs(count) {
-    const container = document.getElementById('dynamic-inputs');
-    container.innerHTML = ''; // 기존 입력 필드 초기화
-    
+// 샘플 데이터 생성 함수 (내림차순으로 수정)
+function generateSampleData(count) {
+    const data = [];
+    const koreanMonths = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
     const now = new Date();
     const currentMonth = now.getMonth(); // 0-11
-    const koreanMonths = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
     
-    // 과거부터 최근까지 입력 필드 생성 (가장 오래된 데이터부터)
-    for (let i = count; i >= 1; i--) {
-        // 해당 개월 전의 월 계산
-        const monthIndex = (currentMonth - i + 1 + 12) % 12;
+    // 내림차순으로 생성 (최근 월부터 과거로)
+    for (let i = 0; i < count; i++) {
+        // 현재 월부터 과거로 내려감
+        const monthIndex = (currentMonth - i + 12) % 12;
+        // 최근 월일수록 더 높은 매출과 비용 (기본 패턴)
+        const revenue = 1000 - i * 50; // 최근 월이 가장 높고 점점 감소
+        const cost = 700 - i * 30; // 최근 월이 가장 높고 점점 감소
         
-        // 입력 필드 컨테이너 생성
-        const monthInputDiv = document.createElement('div');
-        monthInputDiv.className = 'month-input';
-        
-        // 개월 레이블 표시 (몇 개월 전인지)
-        const monthLabel = i === 1 ? '1개월 전' : `${i}개월 전`;
-        
-        // HTML 내용 생성
-        monthInputDiv.innerHTML = `
-            <h3>🔍 ${monthLabel}</h3>
-            <label for="month${i}-select">월 선택:</label>
-            <select id="month${i}-select">
-                ${koreanMonths.map((month, idx) => 
-                    `<option value="${month}" ${idx === monthIndex ? 'selected' : ''}>${month}</option>`
-                ).join('')}
-            </select>
-            <label for="month${i}-revenue">매출:</label>
-            <span class="unit-label">단위: 만원 💰</span>
-            <input type="number" id="month${i}-revenue" placeholder="예: ${900 + (i-1)*50}">
-            <label for="month${i}-cost">비용:</label>
-            <span class="unit-label">단위: 만원 💸</span>
-            <input type="number" id="month${i}-cost" placeholder="예: ${600 + (i-1)*50}">
-        `;
-        
-        // 컨테이너에 추가
-        container.appendChild(monthInputDiv);
+        data.push({
+            month: koreanMonths[monthIndex],
+            revenue: revenue,
+            cost: cost
+        });
     }
     
-    // 샘플 데이터 설정 (기본값)
-    for (let i = count; i >= 1; i--) {
-        const revValue = 900 + (count - i) * 50;
-        const costValue = 600 + (count - i) * 50;
+    return data;
+}
+
+// 동적으로 입력 테이블 생성 함수 (내림차순으로 수정)
+function generateInputTable(count, clearValues = false) {
+    const tableBody = document.getElementById('input-table-body');
+    tableBody.innerHTML = ''; // 기존 행 초기화
+    
+    const koreanMonths = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+    const now = new Date();
+    const currentMonth = now.getMonth(); // 0-11
+    
+    for (let i = 0; i < count; i++) {
+        const row = document.createElement('tr');
         
-        document.getElementById(`month${i}-revenue`).value = revValue;
-        document.getElementById(`month${i}-cost`).value = costValue;
+        // 월 선택 셀
+        const monthCell = document.createElement('td');
+        monthCell.className = 'input-cell';
+        
+        const monthSelect = document.createElement('select');
+        monthSelect.id = `month-select-${i}`;
+        
+        koreanMonths.forEach((month, idx) => {
+            const option = document.createElement('option');
+            option.value = month;
+            option.textContent = month;
+            
+            // 기본 선택 월 설정 (내림차순: 최근 월부터 과거로)
+            const monthIndex = (currentMonth - i + 12) % 12;
+            if (idx === monthIndex) {
+                option.selected = true;
+            }
+            
+            monthSelect.appendChild(option);
+        });
+        
+        monthCell.appendChild(monthSelect);
+        row.appendChild(monthCell);
+        
+        // 매출 입력 셀
+        const revenueCell = document.createElement('td');
+        revenueCell.className = 'input-cell';
+        
+        const revenueInput = document.createElement('input');
+        revenueInput.type = 'number';
+        revenueInput.id = `revenue-input-${i}`;
+        // 더 최근 월이 더 높은 매출
+        revenueInput.placeholder = `예: ${1000 - i * 50}`;
+        
+        if (!clearValues) {
+            revenueInput.value = 1000 - i * 50; // 기본값 설정 (내림차순)
+        }
+        
+        revenueCell.appendChild(revenueInput);
+        row.appendChild(revenueCell);
+        
+        // 비용 입력 셀
+        const costCell = document.createElement('td');
+        costCell.className = 'input-cell';
+        
+        const costInput = document.createElement('input');
+        costInput.type = 'number';
+        costInput.id = `cost-input-${i}`;
+        // 더 최근 월이 더 높은 비용
+        costInput.placeholder = `예: ${700 - i * 30}`;
+        
+        if (!clearValues) {
+            costInput.value = 700 - i * 30; // 기본값 설정 (내림차순)
+        }
+        
+        costCell.appendChild(costInput);
+        row.appendChild(costCell);
+        
+        // 행 추가
+        tableBody.appendChild(row);
+    }
+}
+
+// 엑셀 붙여넣기 데이터 처리 함수
+function processPasteData() {
+    const pasteContent = document.getElementById('excel-paste-area').innerText.trim();
+    
+    if (pasteContent === '' || pasteContent === '여기에 엑셀 데이터를 붙여넣으세요...') {
+        alert('붙여넣을 데이터가 없습니다.');
+        return;
+    }
+    
+    try {
+        // 붙여넣은 데이터 파싱
+        const rows = pasteContent.split(/\r\n|\n/);
+        const data = [];
+        
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i].trim();
+            if (row === '') continue;
+            
+            // 탭이나 여러 공백으로 분리된 데이터 처리
+            const columns = row.split(/\t|    |  /);
+            
+            if (columns.length < 3) {
+                // 처리할 수 없는 형식의 경우 경고
+                alert('데이터 형식이 올바르지 않습니다. 엑셀에서 [월, 매출, 비용] 순서로 데이터를 복사해주세요.');
+                return;
+            }
+            
+            // 월, 매출, 비용 데이터 추출
+            const month = columns[0].trim();
+            const revenue = parseFloat(columns[1].replace(/,/g, ''));
+            const cost = parseFloat(columns[2].replace(/,/g, ''));
+            
+            if (isNaN(revenue) || isNaN(cost)) {
+                alert(`${i+1}번째 행의 데이터가 올바르지 않습니다. 숫자 형식을 확인해주세요.`);
+                return;
+            }
+            
+            data.push({
+                month: month,
+                revenue: revenue,
+                cost: cost
+            });
+        }
+        
+        // 행 수 업데이트 및 테이블 생성
+        const newRowCount = data.length;
+        document.getElementById('row-count').value = newRowCount;
+        generateInputTable(newRowCount, true); // 값 초기화로 생성
+        
+        // 파싱된 데이터로 테이블 채우기
+        fillTableWithData(data);
+        
+        // 붙여넣기 영역 초기화
+        document.getElementById('excel-paste-area').innerText = '여기에 엑셀 데이터를 붙여넣으세요...';
+        
+    } catch (error) {
+        alert('데이터 처리 중 오류가 발생했습니다: ' + error.message);
+    }
+}
+
+// 데이터로 테이블 채우기 함수
+function fillTableWithData(data) {
+    for (let i = 0; i < data.length; i++) {
+        const monthSelect = document.getElementById(`month-select-${i}`);
+        const revenueInput = document.getElementById(`revenue-input-${i}`);
+        const costInput = document.getElementById(`cost-input-${i}`);
+        
+        // 월 설정 (정확한 월 이름이 없으면 가장 근접한 이름 찾기)
+        const month = data[i].month;
+        for (let j = 0; j < monthSelect.options.length; j++) {
+            if (monthSelect.options[j].value.includes(month) || month.includes(monthSelect.options[j].value)) {
+                monthSelect.selectedIndex = j;
+                break;
+            }
+        }
+        
+        revenueInput.value = data[i].revenue;
+        costInput.value = data[i].cost;
     }
 }
 
@@ -84,16 +232,20 @@ function calculateForecast() {
         // 입력 데이터 수집
         const pastData = [];
         
-        // 현재 입력 필드 수 확인
-        const monthInputs = document.querySelectorAll('.month-input').length;
+        // 현재 입력 테이블의 행 수
+        const rows = document.getElementById('input-table-body').getElementsByTagName('tr');
         
-        for (let i = monthInputs; i >= 1; i--) { // 가장 오래된 데이터부터 최근 데이터까지 (과거 순서대로)
-            const monthName = document.getElementById(`month${i}-select`).value;
-            const revenue = parseFloat(document.getElementById(`month${i}-revenue`).value);
-            const cost = parseFloat(document.getElementById(`month${i}-cost`).value);
+        for (let i = 0; i < rows.length; i++) {
+            const monthSelect = document.getElementById(`month-select-${i}`);
+            const revenueInput = document.getElementById(`revenue-input-${i}`);
+            const costInput = document.getElementById(`cost-input-${i}`);
+            
+            const monthName = monthSelect.value;
+            const revenue = parseFloat(revenueInput.value);
+            const cost = parseFloat(costInput.value);
             
             if (!monthName || isNaN(revenue) || isNaN(cost)) {
-                alert("모든 입력 필드를 올바르게 채워주세요.");
+                alert(`${i+1}번째 행의 데이터가 올바르지 않습니다. 모든 필드를 채워주세요.`);
                 return;
             }
             
@@ -105,6 +257,15 @@ function calculateForecast() {
                 marginPercent: ((revenue - cost) / revenue * 100).toFixed(2)
             });
         }
+        
+        // 데이터가 충분한지 확인
+        if (pastData.length < 2) {
+            alert('정확한 예측을 위해 최소 2개월 이상의 데이터가 필요합니다.');
+            return;
+        }
+        
+        // 내림차순으로 입력된 데이터를 오름차순으로 변환 (과거 -> 최근)
+        pastData.reverse();
         
         // 예측 실행
         const results = generateForecast(pastData);
@@ -501,3 +662,4 @@ function generateFinancialSummary(results) {
     document.getElementById('improvement-opportunities').innerHTML = improvementText;
     document.getElementById('tobe-direction').innerHTML = tobeText;
 }
+```
