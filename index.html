@@ -65,21 +65,66 @@
                         </tr>
                     </thead>
                     <tbody id="input-table-body">
-                        <!-- 기본 입력 행 추가 -->
+                        <!-- 기본 입력 행 추가 - 수정된 부분: 월 입력이 드롭다운으로 변경되고 기본값 설정 -->
                         <tr>
-                            <td class="input-cell"><input type="text" class="month-input" id="month-input-0" placeholder="예: 3월"></td>
-                            <td class="input-cell"><input type="number" class="revenue-input" id="revenue-input-0" placeholder="예: 1000"></td>
-                            <td class="input-cell"><input type="number" class="cost-input" id="cost-input-0" placeholder="예: 700"></td>
+                            <td class="input-cell">
+                                <select class="month-input" id="month-input-0">
+                                    <option value="1월">1월</option>
+                                    <option value="2월">2월</option>
+                                    <option value="3월" selected>3월</option>
+                                    <option value="4월">4월</option>
+                                    <option value="5월">5월</option>
+                                    <option value="6월">6월</option>
+                                    <option value="7월">7월</option>
+                                    <option value="8월">8월</option>
+                                    <option value="9월">9월</option>
+                                    <option value="10월">10월</option>
+                                    <option value="11월">11월</option>
+                                    <option value="12월">12월</option>
+                                </select>
+                            </td>
+                            <td class="input-cell"><input type="number" class="revenue-input" id="revenue-input-0" value="1000"></td>
+                            <td class="input-cell"><input type="number" class="cost-input" id="cost-input-0" value="700"></td>
                         </tr>
                         <tr>
-                            <td class="input-cell"><input type="text" class="month-input" id="month-input-1" placeholder="예: 2월"></td>
-                            <td class="input-cell"><input type="number" class="revenue-input" id="revenue-input-1" placeholder="예: 950"></td>
-                            <td class="input-cell"><input type="number" class="cost-input" id="cost-input-1" placeholder="예: 670"></td>
+                            <td class="input-cell">
+                                <select class="month-input" id="month-input-1">
+                                    <option value="1월">1월</option>
+                                    <option value="2월" selected>2월</option>
+                                    <option value="3월">3월</option>
+                                    <option value="4월">4월</option>
+                                    <option value="5월">5월</option>
+                                    <option value="6월">6월</option>
+                                    <option value="7월">7월</option>
+                                    <option value="8월">8월</option>
+                                    <option value="9월">9월</option>
+                                    <option value="10월">10월</option>
+                                    <option value="11월">11월</option>
+                                    <option value="12월">12월</option>
+                                </select>
+                            </td>
+                            <td class="input-cell"><input type="number" class="revenue-input" id="revenue-input-1" value="950"></td>
+                            <td class="input-cell"><input type="number" class="cost-input" id="cost-input-1" value="670"></td>
                         </tr>
                         <tr>
-                            <td class="input-cell"><input type="text" class="month-input" id="month-input-2" placeholder="예: 1월"></td>
-                            <td class="input-cell"><input type="number" class="revenue-input" id="revenue-input-2" placeholder="예: 900"></td>
-                            <td class="input-cell"><input type="number" class="cost-input" id="cost-input-2" placeholder="예: 640"></td>
+                            <td class="input-cell">
+                                <select class="month-input" id="month-input-2">
+                                    <option value="1월" selected>1월</option>
+                                    <option value="2월">2월</option>
+                                    <option value="3월">3월</option>
+                                    <option value="4월">4월</option>
+                                    <option value="5월">5월</option>
+                                    <option value="6월">6월</option>
+                                    <option value="7월">7월</option>
+                                    <option value="8월">8월</option>
+                                    <option value="9월">9월</option>
+                                    <option value="10월">10월</option>
+                                    <option value="11월">11월</option>
+                                    <option value="12월">12월</option>
+                                </select>
+                            </td>
+                            <td class="input-cell"><input type="number" class="revenue-input" id="revenue-input-2" value="900"></td>
+                            <td class="input-cell"><input type="number" class="cost-input" id="cost-input-2" value="640"></td>
                         </tr>
                     </tbody>
                 </table>
