@@ -1,3 +1,4 @@
+
 :root {
     --primary-color: #3498db;
     --secondary-color: #2ecc71;
@@ -247,3 +248,113 @@ footer {
         font-size: 2rem;
     }
 }
+
+/* 드롭다운 월 선택 스타일 추가 */
+select.month-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: white;
+    color: var(--text-color);
+    font-size: 14px;
+    appearance: auto;
+    -webkit-appearance: menulist;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+select.month-input option {
+    color: var(--text-color);
+    background-color: white;
+    font-size: 14px;
+    padding: 5px;
+}
+
+/* 테이블 관련 스타일 추가 */
+.input-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.input-table th {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px;
+    text-align: left;
+}
+
+.input-table td {
+    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.input-cell {
+    padding: 5px;
+}
+
+/* 테이블 반응형 스타일 */
+.table-responsive {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+/* 입력 컨트롤 스타일 */
+.input-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.excel-paste-area {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: white;
+    margin-bottom: 10px;
+    font-family: monospace;
+    color: var(--text-color);
+}
+
+.excel-btn {
+    background-color: var(--secondary-color);
+}
+
+.apply-btn {
+    background-color: var(--primary-color);
+    margin-right: 5px;
+}
+
+.button-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#calculate-btn {
+    background-color: var(--secondary-color);
+    font-size: 1.1rem;
+    padding: 15px 30px;
+}
+
+.instructions {
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.warning-text {
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.row-count-select {
+    max-width: 150px;
+}
+```
