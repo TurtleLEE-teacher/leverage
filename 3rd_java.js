@@ -1,4 +1,3 @@
-
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', function() {
     // 기본 행 수 (기본값: 3개월)
@@ -65,7 +64,7 @@ function generateSampleData(count) {
     return data;
 }
 
-// 동적으로 입력 테이블 생성 함수 (내림차순으로 수정)
+// 동적으로 입력 테이블 생성 함수 (수정: SELECT를 INPUT으로 변경)
 function generateInputTable(count, clearValues = false) {
     const tableBody = document.getElementById('input-table-body');
     tableBody.innerHTML = ''; // 기존 행 초기화
@@ -77,28 +76,24 @@ function generateInputTable(count, clearValues = false) {
     for (let i = 0; i < count; i++) {
         const row = document.createElement('tr');
         
-        // 월 선택 셀
+        // 월 입력 셀 - SELECT에서 INPUT으로 변경
         const monthCell = document.createElement('td');
         monthCell.className = 'input-cell';
         
-        const monthSelect = document.createElement('select');
-        monthSelect.id = `month-select-${i}`;
+        const monthInput = document.createElement('input');
+        monthInput.type = 'text';
+        monthInput.id = `month-input-${i}`;
+        monthInput.className = 'month-input';
         
-        koreanMonths.forEach((month, idx) => {
-            const option = document.createElement('option');
-            option.value = month;
-            option.textContent = month;
-            
-            // 기본 선택 월 설정 (내림차순: 최근 월부터 과거로)
-            const monthIndex = (currentMonth - i + 12) % 12;
-            if (idx === monthIndex) {
-                option.selected = true;
-            }
-            
-            monthSelect.appendChild(option);
-        });
+        // 기본값 설정 (내림차순: 최근 월부터 과거로)
+        const monthIndex = (currentMonth - i + 12) % 12;
+        if (!clearValues) {
+            monthInput.value = koreanMonths[monthIndex];
+        }
         
-        monthCell.appendChild(monthSelect);
+        monthInput.placeholder = '월 입력 (예: 1월)';
+        
+        monthCell.appendChild(monthInput);
         row.appendChild(monthCell);
         
         // 매출 입력 셀
@@ -108,11 +103,11 @@ function generateInputTable(count, clearValues = false) {
         const revenueInput = document.createElement('input');
         revenueInput.type = 'number';
         revenueInput.id = `revenue-input-${i}`;
-        // 더 최근 월이 더 높은 매출
+        revenueInput.className = 'revenue-input';
         revenueInput.placeholder = `예: ${1000 - i * 50}`;
         
         if (!clearValues) {
-            revenueInput.value = 1000 - i * 50; // 기본값 설정 (내림차순)
+            revenueInput.value = 1000 - i * 50;
         }
         
         revenueCell.appendChild(revenueInput);
@@ -125,11 +120,11 @@ function generateInputTable(count, clearValues = false) {
         const costInput = document.createElement('input');
         costInput.type = 'number';
         costInput.id = `cost-input-${i}`;
-        // 더 최근 월이 더 높은 비용
+        costInput.className = 'cost-input';
         costInput.placeholder = `예: ${700 - i * 30}`;
         
         if (!clearValues) {
-            costInput.value = 700 - i * 30; // 기본값 설정 (내림차순)
+            costInput.value = 700 - i * 30;
         }
         
         costCell.appendChild(costInput);
@@ -140,7 +135,7 @@ function generateInputTable(count, clearValues = false) {
     }
 }
 
-// 엑셀 붙여넣기 데이터 처리 함수
+// 엑셀 붙여넣기 데이터 처리 함수 (개선: 다양한 형식 처리)
 function processPasteData() {
     const pasteContent = document.getElementById('excel-paste-area').innerText.trim();
     
@@ -150,7 +145,7 @@ function processPasteData() {
     }
     
     try {
-        // 붙여넣은 데이터 파싱
+        // 붙여넣은 데이터 파싱 (개선: 다양한 구분자 처리)
         const rows = pasteContent.split(/\r\n|\n/);
         const data = [];
         
@@ -158,23 +153,53 @@ function processPasteData() {
             const row = rows[i].trim();
             if (row === '') continue;
             
-            // 탭이나 여러 공백으로 분리된 데이터 처리
-            const columns = row.split(/\t|    |  /);
+            // 탭이나 여러 공백으로 분리된 데이터 처리 (개선: 다양한 구분자 인식)
+            let columns;
             
-            if (columns.length < 3) {
+            // 탭, 콤마, 세미콜론 또는 여러 공백으로 구분된 데이터 처리
+            if (row.includes('\t')) {
+                columns = row.split('\t');
+            } else if (row.includes(',')) {
+                columns = row.split(',');
+            } else if (row.includes(';')) {
+                columns = row.split(';');
+            } else {
+                columns = row.split(/\s{2,}/); // 2개 이상의 공백으로 구분
+            }
+            
+            if (columns.length < 2) {
+                // 단일 공백으로 분리 시도
+                columns = row.split(' ');
+            }
+            
+            if (columns.length < 2) {
                 // 처리할 수 없는 형식의 경우 경고
                 alert('데이터 형식이 올바르지 않습니다. 엑셀에서 [월, 매출, 비용] 순서로 데이터를 복사해주세요.');
                 return;
             }
             
-            // 월, 매출, 비용 데이터 추출
+            // 월, 매출, 비용 데이터 추출 (개선: 더 유연한 데이터 처리)
             const month = columns[0].trim();
-            const revenue = parseFloat(columns[1].replace(/,/g, ''));
-            const cost = parseFloat(columns[2].replace(/,/g, ''));
             
-            if (isNaN(revenue) || isNaN(cost)) {
-                alert(`${i+1}번째 행의 데이터가 올바르지 않습니다. 숫자 형식을 확인해주세요.`);
+            // 숫자 파싱 개선 (콤마 및 기타 서식 제거)
+            let revenue = columns[1].trim().replace(/[^\d.-]/g, '');
+            let cost = '0';
+            
+            if (columns.length >= 3) {
+                cost = columns[2].trim().replace(/[^\d.-]/g, '');
+            }
+            
+            revenue = parseFloat(revenue);
+            cost = parseFloat(cost);
+            
+            if (isNaN(revenue)) {
+                alert(`${i+1}번째 행의 매출 데이터가 올바르지 않습니다. 숫자 형식을 확인해주세요.`);
                 return;
+            }
+            
+            if (isNaN(cost)) {
+                // 비용 데이터가 없거나 올바르지 않은 경우 0으로 설정
+                cost = 0;
             }
             
             data.push({
@@ -182,6 +207,12 @@ function processPasteData() {
                 revenue: revenue,
                 cost: cost
             });
+        }
+        
+        // 데이터가 없는 경우 처리
+        if (data.length === 0) {
+            alert('처리할 데이터가 없습니다.');
+            return;
         }
         
         // 행 수 업데이트 및 테이블 생성
@@ -200,24 +231,18 @@ function processPasteData() {
     }
 }
 
-// 데이터로 테이블 채우기 함수
+// 데이터로 테이블 채우기 함수 (수정: SELECT에서 INPUT으로 변경됨에 따라 수정)
 function fillTableWithData(data) {
     for (let i = 0; i < data.length; i++) {
-        const monthSelect = document.getElementById(`month-select-${i}`);
+        const monthInput = document.getElementById(`month-input-${i}`);
         const revenueInput = document.getElementById(`revenue-input-${i}`);
         const costInput = document.getElementById(`cost-input-${i}`);
         
-        // 월 설정 (정확한 월 이름이 없으면 가장 근접한 이름 찾기)
-        const month = data[i].month;
-        for (let j = 0; j < monthSelect.options.length; j++) {
-            if (monthSelect.options[j].value.includes(month) || month.includes(monthSelect.options[j].value)) {
-                monthSelect.selectedIndex = j;
-                break;
-            }
+        if (monthInput && revenueInput && costInput) {
+            monthInput.value = data[i].month;
+            revenueInput.value = data[i].revenue;
+            costInput.value = data[i].cost;
         }
-        
-        revenueInput.value = data[i].revenue;
-        costInput.value = data[i].cost;
     }
 }
 
@@ -226,7 +251,7 @@ function formatNumber(num) {
     return Math.round(num).toLocaleString('ko-KR');
 }
 
-// 예측 계산 및 표시
+// 예측 계산 및 표시 (수정: SELECT에서 INPUT으로 변경됨에 따라 수정)
 function calculateForecast() {
     try {
         // 입력 데이터 수집
@@ -236,11 +261,17 @@ function calculateForecast() {
         const rows = document.getElementById('input-table-body').getElementsByTagName('tr');
         
         for (let i = 0; i < rows.length; i++) {
-            const monthSelect = document.getElementById(`month-select-${i}`);
+            const monthInput = document.getElementById(`month-input-${i}`);
             const revenueInput = document.getElementById(`revenue-input-${i}`);
             const costInput = document.getElementById(`cost-input-${i}`);
             
-            const monthName = monthSelect.value;
+            // 존재 확인
+            if (!monthInput || !revenueInput || !costInput) {
+                alert(`${i+1}번째 행의 입력 필드를 찾을 수 없습니다.`);
+                return;
+            }
+            
+            const monthName = monthInput.value;
             const revenue = parseFloat(revenueInput.value);
             const cost = parseFloat(costInput.value);
             
@@ -281,6 +312,7 @@ function calculateForecast() {
     }
 }
 
+// 나머지 함수들은 동일하게 유지...
 // 향후 6개월 예측 함수
 function generateForecast(pastData) {
     // 선형 회귀 계산
@@ -484,182 +516,4 @@ function createChart(results) {
     const futureProfits = results.futureData.map(d => d.profit);
             
     // 차트 생성
-    window.forecastChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: allMonths,
-            datasets: [
-                {
-                    label: '매출 (만원)',
-                    data: [...pastRevenues, ...futureRevenues],
-                    backgroundColor: 'rgba(52, 152, 219, 0.2)',
-                    borderColor: 'rgba(52, 152, 219, 1)',
-                    borderWidth: 3,
-                    pointBackgroundColor: function(context) {
-                        // 과거 데이터는 실선, 미래 데이터는 점선으로 표시
-                        return context.dataIndex < pastMonths.length ? 
-                            'rgba(52, 152, 219, 1)' : 'rgba(52, 152, 219, 0.7)';
-                    },
-                    segment: {
-                        borderDash: function(context) {
-                            // 미래 부분은 점선으로
-                            return context.p1DataIndex >= pastMonths.length ? [6, 6] : undefined;
-                        }
-                    }
-                },
-                {
-                    label: '비용 (만원)',
-                    data: [...pastCosts, ...futureCosts],
-                    backgroundColor: 'rgba(231, 76, 60, 0.2)',
-                    borderColor: 'rgba(231, 76, 60, 1)',
-                    borderWidth: 3,
-                    pointBackgroundColor: function(context) {
-                        return context.dataIndex < pastMonths.length ? 
-                            'rgba(231, 76, 60, 1)' : 'rgba(231, 76, 60, 0.7)';
-                    },
-                    segment: {
-                        borderDash: function(context) {
-                            return context.p1DataIndex >= pastMonths.length ? [6, 6] : undefined;
-                        }
-                    }
-                },
-                {
-                    label: '이익 (만원)',
-                    data: [...pastProfits, ...futureProfits],
-                    backgroundColor: 'rgba(46, 204, 113, 0.2)',
-                    borderColor: 'rgba(46, 204, 113, 1)',
-                    borderWidth: 3,
-                    pointBackgroundColor: function(context) {
-                        return context.dataIndex < pastMonths.length ? 
-                            'rgba(46, 204, 113, 1)' : 'rgba(46, 204, 113, 0.7)';
-                    },
-                    segment: {
-                        borderDash: function(context) {
-                            return context.p1DataIndex >= pastMonths.length ? [6, 6] : undefined;
-                        }
-                    }
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.dataset.label + ': ' + formatNumber(context.raw);
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    ticks: {
-                        callback: function(value) {
-                            return formatNumber(value);
-                        }
-                    }
-                },
-                x: {
-                    grid: {
-                        display: true,
-                        color: function(context) {
-                            if (context.index === pastMonths.length - 0.5) {
-                                return 'rgba(128, 128, 128, 0.5)';
-                            }
-                            return 'rgba(0, 0, 0, 0.1)';
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-// 재무 요약 생성 함수
-function generateFinancialSummary(results) {
-    // 1. AsIs 현황 분석
-    let asisText = '';
-    
-    // 과거 데이터 분석 - 다양한 입력 개월 수에 대응하도록 수정
-    const firstIndex = 0;
-    const lastIndex = results.pastData.length - 1;
-    
-    // 최소 2개월 이상의 데이터가 있을 때 성장률 계산
-    let revenueGrowthRate = "데이터 부족";
-    let profitGrowthRate = "데이터 부족";
-    
-    if (results.pastData.length >= 2) {
-        revenueGrowthRate = ((results.pastData[lastIndex].revenue - results.pastData[firstIndex].revenue) / results.pastData[firstIndex].revenue * 100).toFixed(1);
-        profitGrowthRate = ((results.pastData[lastIndex].profit - results.pastData[firstIndex].profit) / results.pastData[firstIndex].profit * 100).toFixed(1);
-    }
-    
-    const costRatio = (results.pastAvgCost / results.pastAvgRevenue * 100).toFixed(1);
-    const monthCount = results.pastData.length;
-    
-    asisText += `<p>📈 <strong>매출 현황:</strong> 최근 ${monthCount}개월 평균 매출은 ${formatNumber(results.pastAvgRevenue)}만원이며, 성장률은 ${revenueGrowthRate}%입니다.</p>`;
-    asisText += `<p>💰 <strong>수익 현황:</strong> 최근 ${monthCount}개월 평균 이익은 ${formatNumber(results.pastAvgProfit)}만원이며, 평균 수익률은 ${results.pastAvgMarginPercent.toFixed(1)}%입니다.</p>`;
-    asisText += `<p>💸 <strong>비용 구조:</strong> 매출 대비 비용 비율은 ${costRatio}%이며, 월 평균 비용은 ${formatNumber(results.pastAvgCost)}만원입니다.</p>`;
-    
-    // 2. 개선 기회 분석
-    let improvementText = '';
-    
-    // 수익성 분석 및 개선 기회 도출
-    const costTrend = results.costRegression.slope > 0 ? "증가" : "감소";
-    const revenueTrend = results.revenueRegression.slope > 0 ? "증가" : "감소";
-    const marginDifference = results.avgMarginPercent - results.pastAvgMarginPercent;
-    
-    if (results.revenueRegression.slope <= 0) {
-        improvementText += `<p>⚠️ <strong>매출 하락 위험:</strong> 현재 추세로는 매출이 ${revenueTrend}하고 있습니다. 신규 고객 확보 및 마케팅 전략 강화가 필요합니다.</p>`;
-    }
-    
-    if (results.costRegression.slope > 0) {
-        improvementText += `<p>⚠️ <strong>비용 관리 필요:</strong> 비용이 ${costTrend}하는 추세입니다. 효율성 개선 및 비용 구조 최적화가 필요합니다.</p>`;
-    }
-    
-    if (marginDifference < 0) {
-        improvementText += `<p>⚠️ <strong>수익률 저하:</strong> 미래 예상 수익률(${results.avgMarginPercent.toFixed(1)}%)이 과거(${results.pastAvgMarginPercent.toFixed(1)}%)보다 낮습니다. 가격 전략 및 비용 관리 개선이 필요합니다.</p>`;
-    } else {
-        improvementText += `<p>✅ <strong>수익률 개선 중:</strong> 미래 예상 수익률(${results.avgMarginPercent.toFixed(1)}%)이 과거(${results.pastAvgMarginPercent.toFixed(1)}%)보다 ${marginDifference.toFixed(1)}% 높아지고 있습니다.</p>`;
-    }
-    
-    // 특정 제품/서비스 고도화 필요성
-    improvementText += `<p>🔍 <strong>제품/서비스 개선:</strong> 현재 수익성 지표를 고려할 때, 고부가가치 상품 라인업 강화 및 저수익 상품 최적화가 필요합니다.</p>`;
-    
-    // 3. ToBe 방향성 제시
-    let tobeText = '';
-    
-    // 정량적 목표 제시
-    const targetMarginImprovement = Math.max(5, Math.abs(marginDifference) + 2);
-    const targetMargin = (results.avgMarginPercent + targetMarginImprovement).toFixed(1);
-    const targetRevenue = (results.totalRevenue * 1.15).toFixed(0);
-    
-    tobeText += `<p>🎯 <strong>목표 수익률:</strong> 향후 6개월 내 수익률 ${targetMargin}% 달성을 목표로 설정하는 것이 적절합니다.</p>`;
-    tobeText += `<p>💰 <strong>매출 목표:</strong> 총 매출 ${formatNumber(targetRevenue)}만원(현재 예측 대비 15% 증가)을 목표로 설정하세요.</p>`;
-    
-    // 단계별 전략 제시
-    tobeText += `<p>📋 <strong>단계별 전략:</strong></p>`;
-    tobeText += `<ul>`;
-    tobeText += `<li><strong>1단계 (1-2개월):</strong> 비용 구조 최적화 및 핵심 고객 유지 프로그램 강화</li>`;
-    tobeText += `<li><strong>2단계 (3-4개월):</strong> 고마진 제품/서비스 라인 확대 및 마케팅 효율성 개선</li>`;
-    tobeText += `<li><strong>3단계 (5-6개월):</strong> 신규 시장 확대 및 교차판매 전략 실행</li>`;
-    tobeText += `</ul>`;
-    
-    // 신뢰도에 따른 모니터링 주기 제안
-    if (results.confidenceScore < 70) {
-        tobeText += `<p>⚠️ <strong>모니터링 강화:</strong> 예측 신뢰도(${results.confidenceScore}/100)가 낮으므로, 2주 단위로 핵심 지표를 점검하고 전략을 조정하세요.</p>`;
-    } else {
-        tobeText += `<p>✅ <strong>모니터링 계획:</strong> 예측 신뢰도(${results.confidenceScore}/100)가 양호하므로, 월 단위로 핵심 지표를 점검하고 분기별로 전략을 검토하세요.</p>`;
-    }
-    
-    // 요약 내용 삽입
-    document.getElementById('asis-analysis').innerHTML = asisText;
-    document.getElementById('improvement-opportunities').innerHTML = improvementText;
-    document.getElementById('tobe-direction').innerHTML = tobeText;
-}
-```
+    window.fore
