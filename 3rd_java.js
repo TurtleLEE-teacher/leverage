@@ -13,6 +13,11 @@ function initializeApp() {
 
     // 초기 월 선택 이벤트 리스너 설정
     setupMonthChangeListeners();
+    
+    // [변경 1] 페이지 로드 시 초기 월 순서 설정 (기본값이 제대로 표시되도록)
+    setTimeout(() => {
+        updateMonthsInDescendingOrder(0);
+    }, 0);
 }
 
 // 표 크기 변경 기능 수정 (요구사항 1: 표크기적용 불가 수정)
@@ -35,11 +40,14 @@ function updateTableRows() {
         }
     }
     
-    // 월 순서 자동 설정
-    updateMonthsInDescendingOrder(0);
-    
-    // 월 변경 이벤트 리스너 다시 설정
-    setupMonthChangeListeners();
+    // [변경 2] setTimeout으로 DOM 업데이트 후 월 순서 설정 보장
+    setTimeout(() => {
+        // 월 순서 자동 설정
+        updateMonthsInDescendingOrder(0);
+        
+        // 월 변경 이벤트 리스너 다시 설정
+        setupMonthChangeListeners();
+    }, 0);
 }
 
 // 새 행 추가 함수
@@ -62,10 +70,16 @@ function addNewRow(index) {
         monthSelect.appendChild(option);
     }
     
-    // 기본 월 설정 - 내림차순으로 (요구사항 4: 월은 내림차순으로 자동설정)
+    // [변경 3] 기본 월 설정 방식 개선 - 명시적으로 월 선택
+    // 기존 코드에서는 이 부분에서 월이 제대로 설정되지 않을 수 있음
     if (index > 0) {
         const prevSelect = document.getElementById(`month-input-${index-1}`);
-        const prevMonth = parseInt(prevSelect.value);
+        let prevMonth = 3; // 기본값
+        
+        if (prevSelect && prevSelect.value) {
+            prevMonth = parseInt(prevSelect.value);
+        }
+        
         let newMonth = (prevMonth === 1) ? 12 : prevMonth - 1;
         monthSelect.value = `${newMonth}월`;
     } else {
@@ -120,30 +134,39 @@ function monthChangeHandler(event) {
     updateMonthsInDescendingOrder(changedIndex);
 }
 
-// 월을 내림차순으로 자동 설정하는 함수 (요구사항 4: 월은 내림차순으로 자동설정)
+// [변경 4] 월을 내림차순으로 자동 설정하는 함수 수정 - 파싱 오류 방지
 function updateMonthsInDescendingOrder(changedIndex) {
     const monthSelects = document.querySelectorAll('.month-input');
-    const selectedMonth = parseInt(monthSelects[changedIndex].value);
+    
+    // 첫 번째 월이 설정되지 않은 경우 기본값 설정
+    if (!monthSelects[changedIndex].value) {
+        monthSelects[changedIndex].value = changedIndex === 0 ? '3월' : 
+                                          (changedIndex === 1 ? '2월' : '1월');
+    }
     
     // 변경된 월 추출 (숫자만)
-    const selectedMonthNum = parseInt(monthSelects[changedIndex].value);
+    const selectedMonthValue = monthSelects[changedIndex].value;
+    const selectedMonthNum = parseInt(selectedMonthValue);
     
     // 하위 행들의 월 업데이트 (내림차순)
     for (let i = changedIndex + 1; i < monthSelects.length; i++) {
         const prevMonthNum = parseInt(monthSelects[i-1].value);
-        let newMonth = (prevMonthNum === 1) ? 12 : prevMonthNum - 1;
+        let newMonth = isNaN(prevMonthNum) ? (13 - i) : ((prevMonthNum === 1) ? 12 : prevMonthNum - 1);
         monthSelects[i].value = `${newMonth}월`;
     }
     
     // 상위 행들의 월 업데이트 (오름차순)
     for (let i = changedIndex - 1; i >= 0; i--) {
         const nextMonthNum = parseInt(monthSelects[i+1].value);
-        let newMonth = (nextMonthNum === 12) ? 1 : nextMonthNum + 1;
+        let newMonth = isNaN(nextMonthNum) ? (3 - i) : ((nextMonthNum === 12) ? 1 : nextMonthNum + 1);
         monthSelects[i].value = `${newMonth}월`;
     }
+    
+    // [변경 5] 디버깅용 로그 (필요시 주석 해제)
+    // console.log('월 설정 완료:', Array.from(monthSelects).map(s => s.value));
 }
 
-// 입력값 초기화 함수
+// [변경 6] 입력값 초기화 함수 개선 - 타이밍 문제 해결
 function clearTable() {
     const rowCount = parseInt(document.getElementById('row-count').value);
     const tableBody = document.getElementById('input-table-body');
@@ -156,8 +179,32 @@ function clearTable() {
         addNewRow(i);
     }
     
-    // 월 내림차순 설정
-    updateMonthsInDescendingOrder(0);
+    // DOM 업데이트 후 값을 설정하기 위해 setTimeout 사용
+    setTimeout(() => {
+        // 월 내림차순 설정
+        updateMonthsInDescendingOrder(0);
+        
+        // 각 입력 필드에 명시적으로 값 설정
+        for (let i = 0; i < rowCount; i++) {
+            const monthSelect = document.getElementById(`month-input-${i}`);
+            const revenueInput = document.getElementById(`revenue-input-${i}`);
+            const costInput = document.getElementById(`cost-input-${i}`);
+            
+            // 월 기본값: 3월, 2월, 1월... 순서
+            if (monthSelect) {
+                const monthValue = i === 0 ? '3월' : (i === 1 ? '2월' : (i === 2 ? '1월' : 
+                                  `${(13 - i) > 0 ? (13 - i) : 1}월`));
+                monthSelect.value = monthValue;
+            }
+            
+            // 매출 및 비용 기본값 재설정
+            if (revenueInput) revenueInput.value = 1000 - (i * 50);
+            if (costInput) costInput.value = 700 - (i * 30);
+        }
+        
+        // 월 변경 이벤트 리스너 다시 설정
+        setupMonthChangeListeners();
+    }, 10); // 약간의 지연을 두어 DOM이 업데이트될 시간 제공
     
     // 결과 섹션 숨기기
     document.getElementById('results').style.display = 'none';
@@ -190,31 +237,34 @@ function processPastedData() {
     document.getElementById('row-count').value = Math.min(12, rowCount); // 최대 12개월로 제한
     updateTableRows();
     
-    // 데이터 채우기
-    rows.forEach((row, index) => {
-        if (index >= 12) return; // 최대 12행까지만 처리
+    // [변경 7] 붙여넣기 데이터 처리 후 타이밍 문제 해결
+    setTimeout(() => {
+        // 데이터 채우기
+        rows.forEach((row, index) => {
+            if (index >= 12) return; // 최대 12행까지만 처리
+            
+            const columns = row.split('\t');
+            if (columns.length >= 3) {
+                // 월 설정
+                const monthInput = document.getElementById(`month-input-${index}`);
+                if (monthInput) monthInput.value = columns[0];
+                
+                // 매출 설정
+                const revenueInput = document.getElementById(`revenue-input-${index}`);
+                if (revenueInput) revenueInput.value = columns[1];
+                
+                // 비용 설정
+                const costInput = document.getElementById(`cost-input-${index}`);
+                if (costInput) costInput.value = columns[2];
+            }
+        });
         
-        const columns = row.split('\t');
-        if (columns.length >= 3) {
-            // 월 설정
-            const monthInput = document.getElementById(`month-input-${index}`);
-            if (monthInput) monthInput.value = columns[0];
-            
-            // 매출 설정
-            const revenueInput = document.getElementById(`revenue-input-${index}`);
-            if (revenueInput) revenueInput.value = columns[1];
-            
-            // 비용 설정
-            const costInput = document.getElementById(`cost-input-${index}`);
-            if (costInput) costInput.value = columns[2];
-        }
-    });
-    
-    // 월 순서 자동 설정
-    updateMonthsInDescendingOrder(0);
-    
-    // 결과 계산 트리거
-    calculateForecast();
+        // 월 순서 자동 설정
+        updateMonthsInDescendingOrder(0);
+        
+        // 결과 계산 트리거
+        calculateForecast();
+    }, 10);
 }
 
 // 입력 데이터 수집 함수
