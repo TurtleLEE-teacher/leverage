@@ -379,22 +379,7 @@
                         </tr>
                     </thead>
                     <tbody id="input-table-body">
-                        <!-- 기본 3개월 샘플 데이터 행 -->
-                        <tr>
-                            <td class="input-cell"><input type="text" class="month-input" placeholder="1월"></td>
-                            <td class="input-cell"><input type="number" class="revenue-input" placeholder="매출액" min="0"></td>
-                            <td class="input-cell"><input type="number" class="cost-input" placeholder="비용" min="0"></td>
-                        </tr>
-                        <tr>
-                            <td class="input-cell"><input type="text" class="month-input" placeholder="2월"></td>
-                            <td class="input-cell"><input type="number" class="revenue-input" placeholder="매출액" min="0"></td>
-                            <td class="input-cell"><input type="number" class="cost-input" placeholder="비용" min="0"></td>
-                        </tr>
-                        <tr>
-                            <td class="input-cell"><input type="text" class="month-input" placeholder="3월"></td>
-                            <td class="input-cell"><input type="number" class="revenue-input" placeholder="매출액" min="0"></td>
-                            <td class="input-cell"><input type="number" class="cost-input" placeholder="비용" min="0"></td>
-                        </tr>
+                        <!-- 기본 입력 행들은 JavaScript로 생성됩니다 -->
                     </tbody>
                 </table>
             </div>
@@ -486,125 +471,48 @@
     </div>
 
     <script>
-    // JavaScript code for table initialization and functionality
+    // 페이지 로드 시 실행
     document.addEventListener('DOMContentLoaded', function() {
-        // Function to create the input table rows
-        function createInputTable() {
-            const rowCount = parseInt(document.getElementById('row-count').value);
-            const tableBody = document.getElementById('input-table-body');
-            
-            // Clear existing rows
-            tableBody.innerHTML = '';
-            
-            // Add new rows
-            for (let i = 0; i < rowCount; i++) {
-                const row = document.createElement('tr');
-                
-                // Month cell
-                const monthCell = document.createElement('td');
-                monthCell.className = 'input-cell';
-                const monthInput = document.createElement('input');
-                monthInput.type = 'text';
-                monthInput.className = 'month-input';
-                monthInput.placeholder = `${i+1}월`;
-                monthCell.appendChild(monthInput);
-                
-                // Revenue cell
-                const revenueCell = document.createElement('td');
-                revenueCell.className = 'input-cell';
-                const revenueInput = document.createElement('input');
-                revenueInput.type = 'number';
-                revenueInput.className = 'revenue-input';
-                revenueInput.placeholder = '매출액';
-                revenueInput.min = '0';
-                revenueCell.appendChild(revenueInput);
-                
-                // Cost cell
-                const costCell = document.createElement('td');
-                costCell.className = 'input-cell';
-                const costInput = document.createElement('input');
-                costInput.type = 'number';
-                costInput.className = 'cost-input';
-                costInput.placeholder = '비용';
-                costInput.min = '0';
-                costCell.appendChild(costInput);
-                
-                // Add cells to row
-                row.appendChild(monthCell);
-                row.appendChild(revenueCell);
-                row.appendChild(costCell);
-                
-                // Add row to table
-                tableBody.appendChild(row);
-            }
-        }
-
-        // Function to handle Excel paste area
-        function handleExcelPaste() {
-            const pasteArea = document.getElementById('excel-paste-area');
-            
-            pasteArea.addEventListener('paste', function(e) {
-                e.preventDefault();
-                
-                // Get pasted data
-                const clipboardData = e.clipboardData || window.clipboardData;
-                const pastedData = clipboardData.getData('text');
-                
-                // Display the pasted data
-                this.innerText = pastedData;
+        console.log("DOM이 로드됨 - 초기화 시작");
+        
+        // 기본 행 수 (기본값: 3개월)
+        let rowCount = 3;
+        
+        // 입력 테이블 생성 함수 호출
+        generateInputTable(rowCount);
+        
+        // 모든 이벤트 리스너 설정
+        setupAllEventListeners();
+        
+        console.log("초기화 완료");
+    });
+    
+    // 모든 이벤트 리스너 설정 함수
+    function setupAllEventListeners() {
+        // 행 수 변경 버튼 이벤트 설정
+        const applyRowCountBtn = document.getElementById('apply-row-count');
+        if (applyRowCountBtn) {
+            applyRowCountBtn.addEventListener('click', function() {
+                console.log("표 크기 변경 버튼 클릭됨");
+                const newRowCount = parseInt(document.getElementById('row-count').value);
+                generateInputTable(newRowCount);
             });
-            
-            // Process paste button handler
-            document.getElementById('process-paste').addEventListener('click', function() {
-                const pasteData = document.getElementById('excel-paste-area').innerText;
-                if (pasteData && pasteData !== '여기에 엑셀 데이터를 붙여넣으세요...') {
-                    processExcelData(pasteData);
-                } else {
-                    alert('붙여넣을 데이터가 없습니다.');
-                }
-            });
-        }
-
-        // Function to process Excel data
-        function processExcelData(data) {
-            // Split by newlines to get rows
-            const rows = data.trim().split(/\r?\n/);
-            
-            // Update row count select to match data
-            const rowCountSelect = document.getElementById('row-count');
-            if (rows.length <= 12) {
-                rowCountSelect.value = rows.length;
-            } else {
-                rowCountSelect.value = 12; // Max allowed
-            }
-            
-            // Create table with new row count
-            createInputTable();
-            
-            // Fill in the data
-            const monthInputs = document.querySelectorAll('.month-input');
-            const revenueInputs = document.querySelectorAll('.revenue-input');
-            const costInputs = document.querySelectorAll('.cost-input');
-            
-            for (let i = 0; i < Math.min(rows.length, monthInputs.length); i++) {
-                const cells = rows[i].split(/\t/);
-                
-                if (cells.length >= 1) monthInputs[i].value = cells[0];
-                if (cells.length >= 2) revenueInputs[i].value = cells[1];
-                if (cells.length >= 3) costInputs[i].value = cells[2];
-            }
+            console.log("표 크기 변경 버튼 이벤트 설정됨");
+        } else {
+            console.error("표 크기 변경 버튼을 찾을 수 없음");
         }
         
-        // Initialize event listeners
-        function initEventListeners() {
-            // Button to apply row count changes
-            document.getElementById('apply-row-count').addEventListener('click', createInputTable);
-            
-            // Button to clear table
-            document.getElementById('clear-table').addEventListener('click', function() {
-                document.getElementById('row-count').value = '3';
-                createInputTable();
-            });
-            
-            // Sample data button
-            document.getElementById('paste-example').addEventListener('click', function() {
+        // 계산 버튼 클릭 이벤트 설정
+        const calculateBtn = document.getElementById('calculate-btn');
+        if (calculateBtn) {
+            calculateBtn.addEventListener('click', calculateForecast);
+            console.log("계산 버튼 이벤트 설정됨");
+        } else {
+            console.error("계산 버튼을 찾을 수 없음");
+        }
+        
+        // 엑셀 붙여넣기 처리 버튼 이벤트
+        const processPasteBtn = document.getElementById('process-paste');
+        if (processPasteBtn) {
+            processPasteBtn.addEventListener('click', processPasteData);
+            console.log("
